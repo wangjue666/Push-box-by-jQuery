@@ -55,6 +55,7 @@
 			Game.init($('#div1'));
 			
 		});
+		var n=0;
 		var Game={
 			level:[                 //关卡的数据
 				{
@@ -75,6 +76,23 @@
 						{x:5,y:5}
 					],
 					person:{x:3,y:6}
+				},
+				{
+					map:[
+						1,1,2,2,2,2,1,1,
+						1,1,2,1,1,2,1,1,
+						1,2,2,0,3,2,2,1,
+						1,2,0,0,0,3,2,1,
+						2,2,0,0,0,0,2,2,
+						2,0,0,2,0,0,0,2,
+						2,0,0,0,0,0,0,2,
+						2,2,2,2,2,2,2,2
+					],
+					box:[
+						{x:4,y:5},
+						{x:5,y:5}
+					],
+					person:{x:3,y:6}
 				}
 			],
 			init:function(oParent){ //初始化
@@ -82,6 +100,8 @@
 				this.createMap(0);
 			},
 			createMap:function(iNow){
+				this.oParent.empty();
+				document.title='第'+(iNow+1)+'关';
 				this.nowJson=this.level[iNow];
 				this.oParent.css('width',Math.sqrt(this.nowJson.map.length)*50)
 				$.each(this.nowJson.map,$.proxy(function(i,elem){
@@ -140,7 +160,63 @@
 					oP.data('y',oP.data('y')+stepY);
 					oP.css('left',oP.data('x')*50);
 					oP.css('top',oP.data('y')*50);
+					$('.box').each($.proxy(function(i,elem){
+						if(this.bump(oP,$(elem))&&this.nowJson.map[(oP.data('y')+stepY)*Math.sqrt(this.nowJson.map.length)+oP.data('x')+stepX]!==2){
+							$(elem).css('left',(oP.data('x')+stepX)*50);
+							$(elem).css('top',(oP.data('y')+stepY)*50);
+						
+							$('.box').each($.proxy(function(j,elem2){
+								if(this.bump($(elem),$(elem2))&&elem!=elem2){
+									$(elem).css('left',(oP.data('x'))*50);
+									$(elem).css('top',(oP.data('y'))*50);	
+									oP.data('x',oP.data('x')-stepX);
+									oP.data('y',oP.data('y')-stepY);
+									oP.css('left',oP.data('x')*50);
+									oP.css('top',oP.data('y')*50);	
+								}
+							},this))
+						}else if(this.bump(oP,$(elem))){
+							oP.data('x',oP.data('x')-stepX);
+							oP.data('y',oP.data('y')-stepY);
+							oP.css('left',oP.data('x')*50);
+							oP.css('top',oP.data('y')*50);		
+						}
+					},this));
 				};
+					this.nextLevel();
+			},
+			nextLevel:function(){
+				var iNum=0;
+				$('.pos3').each($.proxy(function(i,elem){
+					$('.box').each($.proxy(function(j,elem2){
+						if(this.bump($(elem),$(elem2))){
+							iNum++;
+						};
+					},this))
+				},this));
+				if(iNum==$('.box').length){
+					
+					n++;
+					console.log(n);
+					this.createMap(n)
+				}
+			},
+			bump:function(obj1,obj2){        //碰撞检测
+				var l1=obj1.offset().left;
+				var r1=obj1.offset().left+obj1.width();
+				var t1=obj1.offset().top;
+				var b1=obj1.offset().top+obj1.height();
+				
+				var l2=obj2.offset().left;
+				var r2=obj2.offset().left+obj2.width();
+				var t2=obj2.offset().top;
+				var b2=obj2.offset().top+obj2.height();
+
+				if(r1<=l2||l1>=r2||b1<=t2||t1>=b2){
+					return false;
+				}else{
+					return true;	
+				}
 			}
 		}
 	</script>
